@@ -1,104 +1,73 @@
-import '../css/common.css';
-import '../css/03-feedback.css';
 import throttle from 'lodash.throttle';
 
+// - заміна паттерна "Магічні числа та строки"
 const STORAGE_KEY = 'feedback-form-state';
+
+let formData = {};
+
 const refs = {
-  form: document.querySelector('.feedback-form'),
-  textarea: document.querySelector('.feedback-form textarea'),
-  input: document.querySelector('input'),
+    form: document.querySelector('.feedback-form'),
+    // input: document.querySelector('.feedback-form  input'),
+    // textarea: document.querySelector('.feedback-form textarea'),
 };
-const formData = {};
 
-populateTextarea();
+refs.form.addEventListener('input', throttle(onInputTextarea, 500));
+refs.form.addEventListener('submit', onFormSubmit);
 
-refs.form.addEventListener('input', throttle(onTextareaInput, 500));
+initInputTextarea();
 
-refs.form.addEventListener('submit', e => {
-  e.preventDefault();
-  e.currentTarget.reset();
-  const objData = JSON.parse(localStorage.getItem(STORAGE_KEY));
-  localStorage.removeItem(STORAGE_KEY);
-});
+function onInputTextarea(event) {
+// - створюємо об'єкт з полями email і message
+    // formData = {
+    //     email: refs.input.value.trim(),
+    //     message: refs.textarea.value.trim(),
+    // };
 
-function onTextareaInput(e) {
-  formData[e.target.name] = e.target.value;
-  const stringifiedData = JSON.stringify(formData);
-  localStorage.setItem(STORAGE_KEY, stringifiedData);
-}
+// - якщо одне значення
+formData[event.target.name] = event.target.value.trim();
 
-function populateTextarea() {
-  const savedMessage = JSON.parse(localStorage.getItem(STORAGE_KEY));
+// - переводимо об'єкт в рядок
+    const formDataJSON = JSON.stringify(formData);
 
-  if (savedMessage === null) {
-    //console.log(savedMessage);
-    return;
-  }
-  refs.textarea.value = savedMessage['message'] || '';
-  refs.input.value = savedMessage['email'] || '';
-}
+// - зберігаємо у сховище
+    localStorage.setItem(STORAGE_KEY, formDataJSON);
 
-// refs.form.addEventListener('input', e => {
-//   //console.log(e.target.name);
-//   //console.log(e.target.value);
+// - додаємо throttle (рядок 14)
+};
 
-//   formData[e.target.name] = e.target.value;
-//   const stringifiedData = JSON.stringify(formData);
-//   localStorage.setItem(STORAGE_KEY, stringifiedData);
-//   console.log(formData);
-// });
+function onFormSubmit(event) {
+// - зупиняємо поведінку за замовчуванням
+    event.preventDefault();
 
-// import '../css/common.css';
-// import '../css/03-feedback.css';
-// import throttle from 'lodash.throttle';
+//  - виводимо в консоль об'єкт з полями email і message
+//    const { email, message } = event.currentTarget.elements;
+//    console.log({ email: email.value.trim(), message: message.value.trim() });
+   console.log(formData)
+// - очищуємо форму
+    event.currentTarget.reset();
+    formData = {};
 
-// const STORAGE_KEY = 'feedback-form-state';
-// const STORAGE_EMAIL = 'email';
+// - прибираємо значення зі сховища
+    localStorage.removeItem(STORAGE_KEY);
+};
 
-// const refs = {
-//   form: document.querySelector('.feedback-form'),
-//   textarea: document.querySelector('.feedback-form textarea'),
-//   input: document.querySelector('input'),
-// };
+function initInputTextarea() {
+    try {
+// - отримуємо значення зі сховища
+    const data = localStorage.getItem(STORAGE_KEY);
+    if (!data) return;
+    formData = JSON.parse(data);
+// - якщо щось там було вже введено, поновлюємо
+    // if(savedData) {
+    // refs.input.value = savedData.email;
+    // refs.textarea.value = savedData.message;
 
-// populateTextarea();
-// populateInput();
+    Object.entries(savedData).forEach(([name, value]) => {
+        refs.form.elements[name].value = value;
+    });
 
-// refs.form.addEventListener('submit', onFormSubmit);
-// refs.textarea.addEventListener('input', throttle(onTextareaInput, 500));
-// refs.input.addEventListener('input', throttle(onEmailInput, 500));
-
-// function onFormSubmit(e) {
-//   e.preventDefault();
-//   e.currentTarget.reset();
-//   localStorage.removeItem(STORAGE_KEY);
-//   localStorage.removeItem(STORAGE_EMAIL);
-// }
-
-// function onTextareaInput(e) {
-//   const message = e.target.value;
-//   localStorage.setItem(STORAGE_KEY, message);
-// }
-
-// function onEmailInput(e) {
-//   const email = e.target.value;
-//   localStorage.setItem(STORAGE_EMAIL, email);
-// }
-
-// function populateTextarea() {
-//   const savedMessage = localStorage.getItem(STORAGE_KEY);
-
-//   if (savedMessage) {
-//     console.log(savedMessage);
-//     refs.textarea.value = savedMessage;
-//   }
-// }
-
-// function populateInput() {
-//   const savedEmail = localStorage.getItem(STORAGE_EMAIL);
-
-//   if (savedEmail) {
-//     console.log(savedEmail);
-//     refs.input.value = savedEmail;
-//   }
-// }
+    
+    } catch (error) {
+        return;
+    }
+};
